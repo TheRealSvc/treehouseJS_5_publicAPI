@@ -49,29 +49,38 @@ function generateModal(fetchedEl) {
 async function loadPage() {
     const jsonDat = await fetch(singleRequest) 
     .then(response => response.json()) 
-    //.then(x => {return(x)}) 
+    .then(x => eventHandlerFun(x)) 
     .catch(error => { console.error('the fetch operation threw the error:', error) });
     let prepDat = await jsonDat.results.map(x => generateGalleryItem(x)) ; 
     gallery.insertAdjacentHTML('beforeend', prepDat.join('')) ;
-    return await jsonDat ;
 } 
 
-staffDat = loadPage() ;  
 
-console.log(typeof(staffDat)) ;
-async function addListeners(jsonDat) {    
-    document.addEventListener('click',  async (e) => {
-        if (e.target.classList.contains('card')) {
-            console.log(`hier1: ${e.target}`) ;
+function eventHandlerFun(jsonDat) {    
+    document.addEventListener('click',  (e) => {
+        console.log(e.target.className) ;
+        const filterClasses = ['card', 'card-text','card-name cap','card-info-container'] ;
+        if (filterClasses.some((x) =>  e.target.className === x )) {
             selectedEmail = e.target.getElementsByClassName('card-text')[0].innerText ;
             console.log(selectedEmail) ;
-            jsonDat.then(x => console.log(x))
-        //body.innerHTML += generateModal(jsonDat.results[1]) ;      
-   }
+            var a = Promise.resolve(jsonDat) ;
+            a.then(x => {
+              for (i=0;i <12;i++) {
+                  if (x.results[i].email === selectedEmail) {
+                    body.innerHTML += generateModal(x.results[i]) ;   
+                  }
+              }      
+            })     
+        } else if (e.target.id==='modal-close-btn' || e.target.innerText==="X" || e.target.tagName=='strong' || e.target.id === "modal-container")  {
+                body.lastElementChild.remove() ;
+        }
   })
+  return jsonDat;
 }
 
-addListeners(staffDat) ;
+loadPage() ;
+
+//addListeners(staffDat) ;
 
 
 /*
