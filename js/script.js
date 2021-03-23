@@ -1,13 +1,25 @@
-// define globals
-const singleRequest = 'https://randomuser.me/api/?results=12'
-const gallery = document.getElementById('gallery');
-const body = document.querySelector('body');
+// define parameters and globals
+const numStaff = 12 ; // parametrization of staff number
+const singleRequest = `https://randomuser.me/api/?results=${numStaff}` ;
+const gallery = document.getElementById('gallery') ;
+const body = document.querySelector('body') ;
+const search = document.querySelector('.search-container')
 
+/**
+ *  render search container
+ */
+function createSearch() {
+  myString= `<form action="#" method="get">
+  <input type="search" id="search-input" class="search-input" placeholder="Search...">
+  <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+  </form>`
+  return myString
+}
 
-// ------------------------------------------
-//  FETCH AND DISPLAY GALLERY  
-// ------------------------------------------
-
+/**
+ * @param fetchedEl is the json object to reference to peoples data in the response body  
+ * @returns the HTML String to render 
+ */
 function generateGalleryItem(fetchedEl) {
     console.log(fetchedEl) ;
     console.log(typeof(fetchedEl));
@@ -25,6 +37,11 @@ function generateGalleryItem(fetchedEl) {
     return myString
 };
 
+/**
+ * 
+ * @param {*} fetchedEl 
+ * @returns 
+ */
 function generateModal(fetchedEl) {
     console.log(fetchedEl) ;
     myString = `<div class="modal-container">
@@ -45,64 +62,88 @@ function generateModal(fetchedEl) {
     return myString
 };
 
-
 async function loadPage() {
-    const jsonDat = await fetch(singleRequest) 
+    const jsonDat = fetch(singleRequest) 
     .then(response => response.json()) 
-    .then(x => eventHandlerFun(x)) 
+    return jsonDat ; 
+}
+search.insertAdjacentHTML('beforeend',createSearch()) ;
+jsonDat = loadPage()
+
+// this is to decouple 
+const jsonData = Promise.resolve(jsonDat);
+    jsonData.then(x => eventHandlerFun(x)) 
+    .then(x => x.results.map(x => generateGalleryItem(x)))
+    .then(y => gallery.insertAdjacentHTML('beforeend', y.join('')))
     .catch(error => { console.error('the fetch operation threw the error:', error) });
-    let prepDat = await jsonDat.results.map(x => generateGalleryItem(x)) ; 
-    gallery.insertAdjacentHTML('beforeend', prepDat.join('')) ;
-} 
+    //let prepDat = await jsonDat.results.map(x => generateGalleryItem(x)) ; 
+    //gallery.insertAdjacentHTML('beforeend', prepDat.join('')) ;
+    //return jsonDat ;
+//} 
 
-
+/**
+ * This function acts as a eventHandler to handle all relevant events 
+ * @param {*} jsonDat this is only passed through 
+ * @returns jsonDat unchanged
+ */
 function eventHandlerFun(jsonDat) {    
     document.addEventListener('click',  (e) => {
         console.log(e.target.className) ;
-        const filterClasses = ['card', 'card-text','card-name cap','card-info-container'] ;
-        if (filterClasses.some((x) =>  e.target.className === x )) {
-            selectedEmail = e.target.getElementsByClassName('card-text')[0].innerText ;
+        galleryClick = /card|card-img|card-name|card-name cap|card-image-container|card-text cap/.test(e.target.className) ; 
+        modalClick = /modal-text|modal-name cap|modal-text cap|modal-img|modal-container|modal-info-container/.test(e.target.className) || e.target.textContent==="X";  
+        
+        if (galleryClick) {
+            selectedEmail = e.target.parentNode.parentNode.querySelector('.card-text').innerText ;
             console.log(selectedEmail) ;
             var a = Promise.resolve(jsonDat) ;
             a.then(x => {
-              for (i=0;i <12;i++) {
+              for (i=0; i < numStaff ; i++) {
                   if (x.results[i].email === selectedEmail) {
                     body.innerHTML += generateModal(x.results[i]) ;   
                   }
               }      
             })     
-        } else if (e.target.id==='modal-close-btn' || e.target.innerText==="X" || e.target.tagName=='strong' || e.target.id === "modal-container")  {
-                body.lastElementChild.remove() ;
-        }
+        } else if (modalClick)  {
+              body.lastElementChild.remove() ;
+        } 
   })
+
+  search.addEventListener('keyup', (e) => {
+    let filterText = e.target.value.toLowerCase() ;
+    gallery.innerHTML = '' ;
+    var a = Promise.resolve(jsonDat) ;
+    a.then(x => {
+      for (i=0; i < numStaff ; i++) {
+        if (x.results[i].name.last.toLowerCase().startsWith(filterText)) {
+          gallery.innerHTML += generateGalleryItem(x.results[i]) ;   
+        }
+      }      
+    })
+  })           
   return jsonDat;
 }
 
-loadPage() ;
+jsonDat = loadPage() ;
+/* jsonDat.then(x => addSearchListener(x))
 
-//addListeners(staffDat) ;
-
-
-/*
-
-function fetchData(url) {
-  return fetch(url)
-           .then(checkStatus)  
-           .then(res => res.json())
-           .catch(error => console.log('Looks like there was a problem!', error))
+function addSearchListener(jsonIn) {
+search.addEventListener('keyup', (e) => {
+  console.log(e.target) ;
+  let filterText = e.target.value.toLowerCase() ;
+  console.log(filterText)
+  body.innerHTML = '' ;
+  for (i=0; i < numStaff ; i++) {
+    if (jsonIn.results[i].name.last.toLowerCase().startsWith(filterText)) {
+      body.innerHTML += generateModal(jsonIn.results[i]) ;   
+    }
+  }      
+ // var a = Promise.resolve(jsonDat) ;
+ // a.then(x => x.results.filter(y => y.name.last.toLowerCase().startsWith(searchText)))
+ // a.then(x => {return(x)}) ;
+})
 }
 
-Promise.all([
-  fetchData('https://dog.ceo/api/breeds/list'),
-  fetchData('https://dog.ceo/api/breeds/image/random')  
-])
-.then(data => {
-  const breedList = data[0].message;
-  const randomImage = data[1].message;
-  
-  generateOptions(breedList);
-  generateImage(randomImage);
-})
-
-
+/* To Do's 
+NOTE: The formatting of the Cell Number should be (XXX) XXX-XXXX and the formatting of 
+the Birthday should be MM/DD/YYYY.
 */
