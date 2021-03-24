@@ -1,10 +1,9 @@
 // define parameters and globals
 const numStaff = 12 ; // parametrization of staff number
-const singleRequest = `https://randomuser.me/api/?results=${numStaff}` ;
+const singleRequest = `https://randomuser.me/api/?results=${numStaff}&nat=us` ;
 const gallery = document.getElementById('gallery') ;
 const body = document.querySelector('body') ;
 const search = document.querySelector('.search-container')
-
 
 
 /**
@@ -23,9 +22,6 @@ function createSearch() {
  * @returns the HTML String to render 
  */
 function generateGalleryItem(fetchedEl) {
-    console.log(fetchedEl) ;
-    console.log(typeof(fetchedEl));
-
     myString = `<div class="card">
                 <div class="card-img-container">
                 <img class="card-img" src="${fetchedEl.picture.medium}" alt="profile picture">
@@ -40,8 +36,8 @@ function generateGalleryItem(fetchedEl) {
 };
 
 /**
- * 
- * @param {*} fetchedEl 
+ * creates the Modal window 
+ * @param  fetchedEl 
  * @returns 
  */
 function generateModal(fetchedEl) {
@@ -119,7 +115,7 @@ function eventHandlerFun1(a) {
         } else if (modalClick)  {
               body.lastElementChild.remove() ;
         } else if (nextClick) {
-              var actualEmail = e.target.parentNode.parentNode.querySelector(".modal-text").innerText
+              const actualEmail = e.target.parentNode.parentNode.querySelector(".modal-text").innerText
               body.lastElementChild.remove() ;
               Promise.resolve(a).then(x => {
                 for (i=0; i < numStaff ; i++) {
@@ -132,7 +128,7 @@ function eventHandlerFun1(a) {
                   }
                 }})      
         } else if (prevClick) {
-          var actualEmail = e.target.parentNode.parentNode.querySelector(".modal-text").innerText
+          const actualEmail = e.target.parentNode.parentNode.querySelector(".modal-text").innerText
           body.lastElementChild.remove() ;
           Promise.resolve(a).then(x => {
             for (i=0; i < numStaff ; i++) {
@@ -156,11 +152,11 @@ return a
  */
 function eventHandlerFun2(a) { 
   search.addEventListener('keyup', (e) => {
-    let filterText = e.target.value.toLowerCase() ;
+    const filterText = new RegExp(e.target.value.toLowerCase()) ;
     gallery.innerHTML = '' ;
     Promise.resolve(a).then(x => {
       for (i=0; i < numStaff ; i++) {
-        if (x.results[i].name.last.toLowerCase().startsWith(filterText) || x.results[i].name.first.toLowerCase().startsWith(filterText)) {
+        if (filterText.test(x.results[i].name.last.toLowerCase()) || filterText.test(x.results[i].name.first.toLowerCase()) ) {
           gallery.insertAdjacentHTML('beforeend',generateGalleryItem(x.results[i])) ;   
         }
       }      
@@ -169,7 +165,6 @@ function eventHandlerFun2(a) {
   return a;
 }
 
-//jsonDat = loadPage() ; 
 
 
 
