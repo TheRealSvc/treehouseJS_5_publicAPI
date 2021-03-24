@@ -4,7 +4,7 @@
 Tested with Chrome Version 89.0.4389.90, Firefox Version 86.0.1 and Edge 89.0.774.57
 
 1) Chrome: works as expected
-2) Firefox: works nicely except refreshing the page. I could'nt find a fix for that. However a workaround is to press cmd+F5 to refresh.
+2) Firefox: works nicely except refreshing the page. I could'nt find a fix for that. However it works when pressing F5.
 3) Edge: works as expected
 
 ## Style changes in css
